@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+    "name": "smart-aiming",
+    "version-string": "1.0.0",
+    "description": "",
+  "dependencies": [
+    "fmt",
+    "spdlog",
+    "nlohmann-json",
+    "clib-util",
+    "tomlplusplus",
+    "xbyak"
+  ]
+}
