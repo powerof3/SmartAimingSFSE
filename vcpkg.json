@@ -1,0 +1,14 @@
+{
+  "name": "smart-aiming",
+  "version-string": "1.0.2",
+  "description": "",
+  "homepage": "",
+  "license": "MIT",
+  "dependencies": [
+    "boost-stl-interfaces",
+    "clib-util",
+    "rsm-binary-io",
+    "spdlog",
+    "xbyak"
+  ]
+}
