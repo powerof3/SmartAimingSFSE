@@ -3,9 +3,7 @@
 #include "RE/Starfield.h"
 #include "SFSE/SFSE.h"
 
-#include "RE/P/PlayerCamera.h"
-
-#include <xbyak/xbyak.h>
+#include <ClibUtil/simpleINI.hpp>
 #include <ClibUtil/singleton.hpp>
 
 #ifdef NDEBUG
@@ -14,7 +12,11 @@
 #	include <spdlog/sinks/msvc_sink.h>
 #endif
 
+#include <xbyak/xbyak.h>
+
 namespace logger = SFSE::log;
+namespace ini = clib_util::ini;
+
 using namespace std::literals;
 using namespace clib_util::singleton;
 

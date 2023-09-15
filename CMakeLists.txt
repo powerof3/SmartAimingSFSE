@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 set(NAME "po3_SmartAiming" CACHE STRING "")
-set(VERSION 1.0.2 CACHE STRING "")
+set(VERSION 1.0.3 CACHE STRING "")
 
 # ---- Options ----
 
@@ -90,7 +90,7 @@ else ()
 	)
 endif ()
 
- find_path(CLIB_UTIL_INCLUDE_DIRS "ClibUtil/bitmasks.hpp")
+find_path(CLIB_UTIL_INCLUDE_DIRS "ClibUtil/bitmasks.hpp")
 
 # ---- Add source files ----
 
@@ -153,7 +153,7 @@ target_include_directories(
 target_link_libraries(
 	${PROJECT_NAME}
 	PRIVATE
-	CommonLibSF::CommonLibSF
+		CommonLibSF::CommonLibSF
 )
 
 target_precompile_headers(

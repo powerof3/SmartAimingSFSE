@@ -13,37 +13,45 @@ namespace Handler
 		{
 			return *stl::adjust_pointer<RE::CameraState>(RE::PlayerCamera::GetSingleton()->currentState, 0x50);
 		}
-	}
 
-	void TrySetFirstPerson(RE::CameraState& a_cachedCameraState)
-	{
-		a_cachedCameraState = detail::QCameraState();
-		if (const auto playerCamera = RE::PlayerCamera::GetSingleton(); playerCamera->IsInThirdPerson()) {
-			playerCamera->ForceFirstPerson();
+		bool QInThirdPerson()
+		{
+			return QCameraState() == RE::CameraState::kThirdPerson;
+		}
+
+		bool QInFirstPerson()
+		{
+			return QCameraState() == RE::CameraState::kFirstPerson;
 		}
 	}
 
-	void TrySetThirdPerson(RE::CameraState a_cachedCameraState)
+	void TrySetFirstPerson(RE::CameraState& a_lastCameraState)
 	{
-		if (const auto playerCamera = RE::PlayerCamera::GetSingleton(); playerCamera->IsInFirstPerson()) {
-			if (!Settings::GetSingleton()->rememberLastCameraState || a_cachedCameraState == RE::CameraState::kThirdPerson) {
-				playerCamera->ForceThirdPerson();
-			}
+		a_lastCameraState = detail::QCameraState();
+	    if (detail::QInThirdPerson()) {
+		    RE::PlayerCamera::GetSingleton()->ForceFirstPerson();
+		}
+	}
+
+	void TrySetThirdPerson(const RE::CameraState a_lastCameraState)
+	{
+		if (detail::QInFirstPerson() && (!Settings::GetSingleton()->rememberLastCameraState || a_lastCameraState == RE::CameraState::kThirdPerson)) {
+			RE::PlayerCamera::GetSingleton()->ForceThirdPerson();
 		}
 	}
 
 	struct WeaponDraw
 	{
-		static bool Thunk(std::uintptr_t a_handler, RE::Actor* a_actor)
+		static bool Thunk(std::uintptr_t a_handler, RE::Actor* a_actor, const RE::BSFixedString& a_tag)
 		{
-			const auto result = func(a_handler, a_actor);
+			const auto result = func(a_handler, a_actor, a_tag);
 			if (a_actor->IsPlayerRef()) {
 				TrySetFirstPerson(lastDrawCameraState);
 			}
 			return result;
 		}
 		static inline REL::Relocation<decltype(Thunk)> func;
-		static inline std::size_t                      idx{ 0x1 };
+		static inline std::uintptr_t                   address{ REL::Relocation<std::uintptr_t>(REL::Offset(0x025F7080), 0x2C).address() };
 	};
 
 	struct EnterIronSights
@@ -62,9 +70,9 @@ namespace Handler
 
 	struct WeaponSheathe
 	{
-		static bool Thunk(std::uintptr_t a_handler, RE::Actor* a_actor)
+		static bool Thunk(std::uintptr_t a_handler, RE::Actor* a_actor, const RE::BSFixedString& a_tag)
 		{
-			const auto result = func(a_handler, a_actor);
+			const auto result = func(a_handler, a_actor, a_tag);
 			if (a_actor->IsPlayerRef()) {
 				TrySetThirdPerson(lastDrawCameraState);
 			}
@@ -90,11 +98,14 @@ namespace Handler
 
 	void Install()
 	{
-		const auto settings = Settings::GetSingleton();
+	    const auto settings = Settings::GetSingleton();
+
+		settings->LoadSettings();
 
 		if (settings->switchOnDraw) {
-			stl::write_vfunc<WeaponDraw>(RE::VTABLE::WeaponDrawHandler[0]);
-			stl::write_vfunc<WeaponSheathe>(RE::VTABLE::WeaponSheatheHandler[0]);
+			// avoid weaponDraw firing twice
+		    stl::write_thunk_call<WeaponDraw>();
+		    stl::write_vfunc<WeaponSheathe>(RE::VTABLE::WeaponSheatheHandler[0]);
 
 			logger::info("Hooked WeaponDraw/Sheathe");
 		}
